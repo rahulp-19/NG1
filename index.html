@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🌷 Nikku's Dream Garden - Cozy Gardening Simulator</title>
+  <!-- Google Fonts Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <div id="game-container">
+    <!-- Day & Night Ambient Filters -->
+    <div id="sky-overlay"></div>
+    <div id="thunder-flash"></div>
+
+    <!-- Map Viewport with Drag and Zoom -->
+    <div id="map-viewport">
+      <div id="garden-map">
+        <div id="garden-grid">
+          <!-- 400 Grid Tiles rendered programmatically -->
+          <!-- Insect/Creature Particle Animation Overlay -->
+          <div id="particle-overlay"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP HUD BAR (Glassmorphism) -->
+    <div id="top-hud" class="hud-panel">
+      <div class="hud-item coin-counter">
+        <span>🪙</span>
+        <span id="coin-count" class="highlight">500</span>
+      </div>
+      <div class="hud-item">
+        <span>📅</span>
+        <span id="days-count">Day 1</span>
+      </div>
+      <div class="hud-item" style="cursor: pointer;" id="weather-display" title="Daily Weather">
+        <span id="weather-emoji">☀</span>
+        <span id="weather-status">Sunny</span>
+      </div>
+      <div class="hud-item">
+        <span>⏰</span>
+        <span id="game-clock">08:00 AM</span>
+      </div>
+    </div>
+
+    <!-- SIDE NAVIGATION BUTTONS -->
+    <div id="side-nav">
+      <button class="nav-button" id="btn-shop" title="Garden Shop">🛒</button>
+      <button class="nav-button" id="btn-encyclopedia" title="Garden Encyclopedia">📖</button>
+      <button class="nav-button" id="btn-achievements" title="Achievements">🏆</button>
+      <button class="nav-button" id="btn-sound" title="Toggle Sound">🔊</button>
+    </div>
+
+    <!-- MAP UTILITY CONTROLS (ZOOM/PAN) -->
+    <div id="map-controls">
+      <button class="nav-button" id="btn-zoom-in" title="Zoom In">➕</button>
+      <button class="nav-button" id="btn-zoom-out" title="Zoom Out">➖</button>
+      <button class="nav-button" id="btn-recenter" title="Recenter Camera">🎯</button>
+    </div>
+
+    <!-- DEBUG SYSTEM PANEL (Fast Forward Growth for testing) -->
+    <div id="debug-panel">
+      <button class="debug-btn" id="btn-dbg-time" title="Advance time 6 hours">⏩ +6h</button>
+      <button class="debug-btn" id="btn-dbg-water" title="Water All Plants">💦 Water All</button>
+      <button class="debug-btn" id="btn-dbg-coins" title="Add 1000 Coins">🪙 +1k</button>
+    </div>
+
+    <!-- TOOL BELT (BOTTOM HUD) -->
+    <div id="tool-belt" class="hud-panel">
+      <button class="tool-button active" data-tool="inspect" title="Inspect / Look around">🔍</button>
+      <button class="tool-button" data-tool="shovel" title="Shovel (Tills land or digs up plants)">⛏️</button>
+      <button class="tool-button" data-tool="plant" title="Plant Seeds">🌱</button>
+      <button class="tool-button" data-tool="water" title="Watering Can">💧</button>
+      <button class="tool-button" data-tool="decorate" title="Place Decorations">🧱</button>
+      <button class="tool-button" data-tool="fertilize" title="Apply Growth Fertilizer (2x speed for 12 hours)">✨</button>
+    </div>
+
+    <!-- FLOATING SEED PICKER DRAWER -->
+    <div id="seed-picker">
+      <div style="font-size: 11px; font-weight: bold; margin-bottom: 8px; color: #4a3e4e; display: flex; justify-content: space-between;">
+        <span>Select Seed:</span>
+        <span style="cursor: pointer; opacity: 0.6;" onclick="document.getElementById('seed-picker').style.display='none'">✕</span>
+      </div>
+      <div class="seed-picker-grid" id="seed-picker-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- FLOATING DECORATION PICKER DRAWER -->
+    <div id="decor-picker">
+      <div style="font-size: 11px; font-weight: bold; margin-bottom: 8px; color: #4a3e4e; display: flex; justify-content: space-between;">
+        <span>Select Decoration:</span>
+        <span style="cursor: pointer; opacity: 0.6;" onclick="document.getElementById('decor-picker').style.display='none'">✕</span>
+      </div>
+      <div class="decor-picker-grid" id="decor-picker-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- NOTIFICATION CORNER -->
+    <div id="notif-container" class="notification-container"></div>
+
+    <!-- ================= SLIDING PANELS ================= -->
+
+    <!-- GARDEN SHOP PANEL -->
+    <div id="panel-shop" class="sliding-panel">
+      <div class="panel-header">
+        <h2>🛒 Nikku's Garden Shop</h2>
+        <button class="close-panel-btn">✕</button>
+      </div>
+      <div class="shop-tabs">
+        <button class="shop-tab-btn active" data-tab="seeds">Seeds 🌱</button>
+        <button class="shop-tab-btn" data-tab="decorations">Decor ⛲</button>
+        <button class="shop-tab-btn" data-tab="upgrades">Upgrades 💧</button>
+      </div>
+      <div class="panel-scroll-content">
+        <div id="shop-items-container" class="shop-grid">
+          <!-- Populated programmatically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- GARDEN ENCYCLOPEDIA PANEL -->
+    <div id="panel-encyclopedia" class="sliding-panel">
+      <div class="panel-header">
+        <h2>📖 Garden Encyclopedia</h2>
+        <button class="close-panel-btn">✕</button>
+      </div>
+      <div class="encyclopedia-stats">
+        <div>Garden Discovery Completion: <span id="encyclopedia-percent" style="font-weight: 800;">0%</span></div>
+        <div class="progress-bar-bg">
+          <div id="encyclopedia-progress" class="progress-bar-fill"></div>
+        </div>
+      </div>
+      <div class="panel-scroll-content">
+        <div id="encyclopedia-items-grid" class="encyclopedia-grid">
+          <!-- Populated programmatically -->
+        </div>
+      </div>
+
+      <!-- Detail Overlay Inside Encyclopedia -->
+      <div id="encyclopedia-detail">
+        <button class="detail-back-btn" id="btn-ency-detail-back">⬅ Back to list</button>
+        <div class="detail-card">
+          <div id="ency-detail-emoji" class="detail-emoji">🌻</div>
+          <div id="ency-detail-name" class="detail-name">Sunflower</div>
+          <div id="ency-detail-rarity" class="detail-rarity Common">Common</div>
+          <p id="ency-detail-desc" style="font-size: 13px; color: #666; line-height: 1.4; margin-bottom: 20px;">Detailed description here.</p>
+          
+          <div class="detail-stats">
+            <div class="detail-stat-box">
+              <div class="label">Growth Period</div>
+              <div id="ency-detail-growth" class="val">48 hours</div>
+            </div>
+            <div class="detail-stat-box">
+              <div class="label">Water Needs</div>
+              <div id="ency-detail-water" class="val">Moderate</div>
+            </div>
+            <div class="detail-stat-box">
+              <div class="label">Base Value</div>
+              <div id="ency-detail-sell" class="val">40 coins</div>
+            </div>
+            <div class="detail-stat-box">
+              <div class="label">Flower Type</div>
+              <div id="ency-detail-type" class="val">Standard</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACHIEVEMENTS PANEL -->
+    <div id="panel-achievements" class="sliding-panel">
+      <div class="panel-header">
+        <h2>🏆 Achievements</h2>
+        <button class="close-panel-btn">✕</button>
+      </div>
+      <div class="panel-scroll-content">
+        <div id="achievements-list-container" class="shop-grid">
+          <!-- Populated programmatically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= INTRO & WELCOME MODALS ================= -->
+
+    <!-- FIRST LAUNCH EXPERIENCE MODAL -->
+    <div id="first-launch-modal" class="modal-overlay" style="display: none;">
+      <div class="welcome-modal">
+        <h1 class="welcome-title">🌸 Welcome to Nikku's Dream Garden 🌸</h1>
+        <div class="intro-sunflowers">🌻🌸🌻</div>
+        <p class="welcome-desc">
+          Begin a beautiful, relaxing, long-term gardening journey. Transform a huge, empty piece of grass into a breathtaking flower paradise of sunflowers, roses, orchids, and rare hybrids.<br><br>
+          We've given you some starting essentials to get your hands dirty!
+        </p>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-val">500</div>
+            <div class="stat-card-label">Starting Coins</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-val">15</div>
+            <div class="stat-card-label">Free Seeds</div>
+          </div>
+        </div>
+        <button class="modal-btn" id="btn-start-game">Enter Garden 🌻</button>
+        <div class="audio-prompt">Synthesized ambient sounds will play once you enter.</div>
+      </div>
+    </div>
+
+    <!-- WELCOME BACK SCREEN -->
+    <div id="welcome-back-modal" class="modal-overlay" style="display: none;">
+      <div class="welcome-modal">
+        <h1 class="welcome-title">🌸 Welcome Back, Nikku 🌸</h1>
+        <div class="intro-sunflowers">🦋🌻🐝</div>
+        <p class="welcome-desc" id="welcome-back-desc">
+          While you were away, your garden continued to grow in real-world time! Here are your current garden statistics.
+        </p>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-val" id="stat-days">1</div>
+            <div class="stat-card-label">Days Gardening</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-val" id="stat-flowers">0</div>
+            <div class="stat-card-label">Flowers Grown</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-val" id="stat-sunflowers">0</div>
+            <div class="stat-card-label">Sunflowers Grown</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-val" id="stat-value">500</div>
+            <div class="stat-card-label">Garden Value</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-val" id="stat-completion">0%</div>
+            <div class="stat-card-label">Completion %</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-val" id="stat-streak">1 Day</div>
+            <div class="stat-card-label">Daily Streak 🔥</div>
+          </div>
+        </div>
+    </div>
+
+    <!-- 3D FLOWER INSPECTOR MODAL -->
+    <div id="flower-inspector-modal" class="modal-overlay" style="display: none;">
+      <div class="welcome-modal" style="max-width: 480px; padding: 25px; transform-style: preserve-3d; perspective: 1000px;">
+        <h1 id="inspect-title" class="welcome-title">🌸 Flower Close-Up 🌸</h1>
+        
+        <div class="stage-3d">
+          <div id="inspect-pedestal-3d" class="pedestal-3d">
+            <!-- Crossed billboards for a true volume 3D appearance -->
+            <div class="flower-billboard plane-a" id="inspect-emoji-a">🌻</div>
+            <div class="flower-billboard plane-b" id="inspect-emoji-b">🌻</div>
+            <div class="flower-billboard plane-c" id="inspect-emoji-c">🌻</div>
+            
+            <!-- Terracotta Pot cylinders -->
+            <div class="pot-3d">
+              <div class="pot-rim"></div>
+              <div class="pot-base"></div>
+            </div>
+          </div>
+        </div>
+        
+        <p id="inspect-desc" class="welcome-desc" style="margin-top: 15px; min-height: 45px; font-size: 13px; line-height: 1.4;">
+          Nikku's Sunflower detail information.
+        </p>
+        
+        <div class="stats-grid" style="margin-bottom: 20px;">
+          <div class="stat-card">
+            <div class="stat-card-val" id="inspect-stat-hydration">100%</div>
+            <div class="stat-card-label">Hydration</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-val" id="inspect-stat-health">100%</div>
+            <div class="stat-card-label">Health</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-val" id="inspect-stat-quality">Normal</div>
+            <div class="stat-card-label">Quality</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-val" id="inspect-stat-age">Blooming</div>
+            <div class="stat-card-label">Age Stage</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <button class="modal-btn" id="btn-inspect-water" style="background:#3498db; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.4);">💧 Water</button>
+          <button class="modal-btn" id="btn-inspect-harvest" style="background:#27ae60; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.4); display: none;">✨ Harvest</button>
+          <button class="modal-btn" id="btn-inspect-close" style="background:#95a5a6; box-shadow: 0 4px 10px rgba(149, 165, 166, 0.4);">✕ Close</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Loading scripts in correct dependency order -->
+  <script src="flowers.js"></script>
+  <script src="decorations.js"></script>
+  <script src="audio.js"></script>
+  <script src="weather.js"></script>
+  <script src="nature.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
